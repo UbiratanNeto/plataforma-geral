@@ -1,0 +1,12 @@
+# URLs amigáveis do painel: /painel/dashboard em vez de /painel/index.php?p=dashboard
+RewriteEngine On
+
+# Se o caminho pedido é um arquivo ou pasta que existe de verdade
+# (css/, assets/, o próprio index.php...), serve normalmente, sem reescrever.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Qualquer outro caminho (ex.: /dashboard, /chamados) vira index.php?p=<valor>
+# O próprio painel/index.php ainda valida esse valor contra a lista de páginas permitidas.
+RewriteRule ^([a-zA-Z0-9_-]+)/?$ index.php?p=$1 [L,QSA]

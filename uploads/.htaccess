@@ -1,0 +1,17 @@
+# Esta pasta recebe arquivos enviados por usuários (fotos de perfil, anexos, etc).
+# Por segurança, o Apache nunca deve EXECUTAR nada aqui dentro — só servir como
+# download/imagem. Sem isso, alguém poderia enviar um arquivo "foto.php" disfarçado
+# de imagem e o servidor rodaria esse código como se fosse seu.
+
+# Bloqueia qualquer requisição a arquivos com extensão de script PHP
+<FilesMatch "\.ph(p[3457]?|t|tml)$">
+    Require all denied
+</FilesMatch>
+
+# Reforço: desativa o motor do PHP nesta pasta, caso o Apache tente processar mesmo assim
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+
+# Impede listar o conteúdo da pasta navegando direto pela URL
+Options -Indexes -ExecCGI
