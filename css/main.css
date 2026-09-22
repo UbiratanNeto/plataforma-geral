@@ -1,0 +1,1069 @@
+/**
+ * Helpdesk UI — Sistema Unificado de Estilos
+ */
+
+/* ==========================================================================
+   1. RESET E CONFIGURAÇÕES GLOBAIS
+   ========================================================================== */
+:root {
+    /* Cores e dimensões padrão (sobrescritas dinamicamente pelo head.php se configurado) */
+    --cor-primaria: #4f46e5;   
+    --cor-secundaria: #818cf8; 
+    
+    --sidebar-w: 260px;
+    --sidebar-w-collapsed: 86px;
+    --bg-body: #f8fafc;
+    --card-bg: #ffffff;
+    --text-color: #1e293b;
+    --muted-color: #64748b;
+    --border-line: #e2e8f0;
+
+    --helpdesk-primary: var(--cor-primaria);
+    --helpdesk-secondary: var(--cor-secundaria);
+    --helpdesk-gradient: linear-gradient(135deg, var(--cor-primaria) 0%, var(--cor-secundaria) 100%);
+
+    /* Gradiente exclusivo da sidebar: mistura a cor de marca com branco para um tom mais suave.
+       Não é usado em botões/avatar/outros elementos — só a sidebar recebe esse tom pastel. */
+    --helpdesk-sidebar-gradient: linear-gradient(135deg, color-mix(in srgb, var(--cor-primaria) 55%, white) 0%, color-mix(in srgb, var(--cor-secundaria) 45%, white) 100%);
+
+    --helpdesk-sidebar-active: rgba(255, 255, 255, 0.2);
+    --helpdesk-card-radius: 1rem;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-body);
+    color: var(--text-color);
+    font-family: 'Inter', "Segoe UI", system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ==========================================================================
+   2. ESTRUTURA DE LAYOUT DO PAINEL (GRID E FLEXBOX PRINCIPAL)
+   ========================================================================== */
+.hd-layout {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: var(--bg-body);
+}
+
+/* Sidebar com degradê dinâmico vindo das configurações */
+.hd-layout__sidebar {
+    width: var(--sidebar-w);
+    background: var(--helpdesk-sidebar-gradient) !important;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-shrink: 0;
+    overflow-y: auto;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 50;
+    box-shadow: 4px 0 25px rgba(15, 23, 42, 0.08);
+}
+
+/* Área de Conteúdo Principal (Ocupa o restante da tela perfeitamente) */
+.hd-layout__main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    background-color: var(--bg-body);
+}
+
+/* Classe utilitária para quando a sidebar estiver minimizada */
+.hd-layout--sidebar-collapsed .hd-layout__sidebar {
+    width: var(--sidebar-w-collapsed);
+}
+
+.hd-layout--sidebar-collapsed .hd-layout__sidebar .hd-sidebar__brand span,
+.hd-layout--sidebar-collapsed .hd-layout__sidebar .hd-sidebar__link span,
+.hd-layout--sidebar-collapsed .hd-layout__sidebar .hd-sidebar__footer-link span {
+    display: none;
+}
+
+/* Com a sidebar minimizada, esconde a seta do grupo e o submenu inteiro —
+   só faz sentido ver "Categorias/Setores/Prioridades" com o texto visível */
+.hd-layout--sidebar-collapsed .hd-layout__sidebar .hd-sidebar__chevron,
+.hd-layout--sidebar-collapsed .hd-layout__sidebar .hd-sidebar__submenu {
+    display: none;
+}
+
+.hd-layout--sidebar-collapsed .hd-layout__sidebar .hd-sidebar__brand {
+    justify-content: center;
+    padding: 1.5rem 0;
+}
+
+/* ==========================================================================
+   3. ELEMENTOS DA SIDEBAR
+   ========================================================================== */
+.hd-sidebar__brand {
+    padding: 1.5rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.hd-sidebar__brand-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 10px;
+    background: #ffffff;
+    color: var(--cor-primaria);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+}
+
+.hd-sidebar__menu {
+    list-style: none;
+    padding: 1.5rem 0;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.hd-sidebar__item {
+    margin-bottom: 0.25rem;
+    position: relative;
+}
+
+.hd-sidebar__link {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin: 0 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.hd-sidebar__link:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Estado Ativo do Menu Lateral: retângulo arredondado suave, sem borda */
+.hd-sidebar__item--active .hd-sidebar__link {
+    color: #ffffff;
+    background-color: var(--helpdesk-sidebar-active);
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   3a. GRUPO DE MENU COM SUBMENU (ex.: "Cadastros") — reaproveitável pra
+   qualquer grupo futuro via data-submenu/data-submenu-content
+   ========================================================================== */
+
+/* O botão do grupo usa a mesma cara do link normal, mas é um <button> */
+.hd-sidebar__group-toggle {
+    width: 100%;
+    background: none;
+    border: none;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: left;
+}
+
+/* Seta que indica aberto/fechado */
+.hd-sidebar__chevron {
+    margin-left: auto;
+    font-size: 0.75rem;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.hd-sidebar__group-toggle[aria-expanded="true"] .hd-sidebar__chevron {
+    transform: rotate(180deg);
+}
+
+/* Destaque discreto no cabeçalho do grupo quando uma página filha está ativa
+   (mais sutil que o azul cheio do item ativo — o item ativo de verdade é o
+   submenu-filho, então aqui é só um indicativo de "a página atual está aqui dentro") */
+.hd-sidebar__group--active > .hd-sidebar__group-toggle {
+    color: #ffffff;
+}
+
+.hd-sidebar__submenu {
+    list-style: none;
+    margin: 0.25rem 0 0.5rem;
+    padding: 0;
+}
+
+.hd-sidebar__subitem {
+    margin-bottom: 0.15rem;
+}
+
+.hd-sidebar__sublink {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0.75rem 0 1.5rem;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.65);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.88rem;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.hd-sidebar__sublink:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Reaproveita o mesmo modificador --active do menuAtivo(), agora no <li> do submenu */
+.hd-sidebar__subitem.hd-sidebar__item--active .hd-sidebar__sublink {
+    color: #ffffff;
+    background-color: var(--helpdesk-sidebar-active);
+    font-weight: 600;
+}
+
+.hd-sidebar__footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hd-sidebar__footer-link {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1.5rem;
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease, background-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.hd-sidebar__footer-link:hover {
+    color: #fca5a5; 
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+
+/* ==========================================================================
+   4. BARRA SUPERIOR (TOPBAR)
+   ========================================================================== */
+.hd-topbar {
+    background-color: var(--card-bg);
+    height: 70px;
+    width: 100%; /* Garante largura total na coluna direita */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    border-bottom: 1px solid var(--border-line);
+    flex-shrink: 0; /* Não deixa a barra superior achatar */
+}
+
+
+/* ==========================================================================
+   5. CONTAINER DO CONTEÚDO E DASHBOARD
+   ========================================================================== */
+.hd-container {
+    padding: 2rem;
+    width: 100%; /* Ocupa toda a largura disponível */
+    max-width: 100%; /* Remove a trava de 1400px para expandir até as bordas */
+    margin: 0;      /* Remove o alinhamento centralizado */
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    flex-grow: 1;
+}
+
+.hd-welcome {
+    margin-bottom: 0.5rem;
+}
+
+.hd-welcome__title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.hd-welcome__subtitle {
+    font-size: 0.9rem;
+    color: var(--muted-color);
+    margin: 0.25rem 0 0 0;
+}
+
+/* Grid de Métricas (Responsivo e Alinhado) */
+.hd-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+}
+
+/* Card de Métrica */
+.hd-metric {
+    background: var(--card-bg);
+    border: 1px solid var(--border-line);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.hd-metric__info h3 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 0.5rem 0;
+}
+
+.hd-metric__value {
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.hd-metric__icon-box {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+}
+
+/* Variantes de cores de fundo e texto para os ícones */
+.hd-metric__icon-box--blue { background: #eff6ff; color: #2563eb; }
+.hd-metric__icon-box--green { background: #ecfdf5; color: #10b981; }
+.hd-metric__icon-box--orange { background: #fff7ed; color: #f97316; }
+.hd-metric__icon-box--red { background: #fef2f2; color: #ef4444; }
+
+/* Grid de Detalhes (Gráfico + Tabela perfeitamente divididos) */
+.hd-details-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 1.5rem;
+    width: 100%;
+    align-items: stretch;
+}
+
+
+/* ==========================================================================
+   6. CARDS PADRONIZADOS (.hd-card)
+   ========================================================================== */
+.hd-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-line);
+    border-radius: var(--helpdesk-card-radius);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.hd-card__header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-line);
+}
+
+/* Cabeçalho de modal do Bootstrap com o gradiente da marca — genérico, qualquer
+   modal.modal-header pode usar isso, não é exclusivo de uma tela específica. */
+.hd-modal-header--gradient {
+    background: var(--helpdesk-gradient);
+    border-bottom: none;
+    border-top-left-radius: var(--bs-modal-border-radius, 0.5rem);
+    border-top-right-radius: var(--bs-modal-border-radius, 0.5rem);
+}
+
+.hd-modal-header--gradient .modal-title {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+/* ==========================================================================
+   Checklist de Permissões (modal "Permissões" de Usuários) — cada seção
+   (um item solto, ou um grupo com filhas) é um cartão único com borda.
+   Genérico: reaproveitável em qualquer outra tela que precise da mesma UI.
+   ========================================================================== */
+.hd-permissao-secao {
+    border: 1px solid var(--border-line);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.hd-permissao-secao + .hd-permissao-secao {
+    margin-top: 1rem;
+}
+
+.hd-permissao-secao__grupo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.1rem;
+    background-color: var(--bg-body);
+    border-bottom: 1px solid var(--border-line);
+}
+
+.hd-permissao-secao__grupo-titulo {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.hd-permissao-badge-submenu {
+    background-color: var(--border-line);
+    color: var(--muted-color);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+}
+
+.hd-permissao-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.1rem;
+}
+
+.hd-permissao-item + .hd-permissao-item {
+    border-top: 1px solid var(--border-line);
+}
+
+.hd-permissao-item__label {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.hd-permissao-item__label i {
+    color: var(--muted-color);
+    width: 1.1em;
+    text-align: center;
+}
+
+/* Variação "em linha" do item — usada nas Permissões de AÇÃO (Criar/Editar/Excluir
+   lado a lado, em vez de uma abaixo da outra) */
+.hd-permissao-item--acoes {
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.hd-permissao-acao {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.hd-card__header--row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.hd-card__title {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #0f172a;
+    margin: 0;
+}
+
+.hd-card__body {
+    padding: 1.5rem;
+    flex: 1;
+}
+
+
+/* ==========================================================================
+   7. TABELAS E BADGES
+   ========================================================================== */
+.hd-table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.hd-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.hd-table th {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted-color);
+    padding: 0.85rem 1rem;
+    border-bottom: 2px solid #f1f5f9;
+    white-space: nowrap;
+}
+
+.hd-table td {
+    padding: 1rem;
+    font-size: 0.875rem;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    white-space: nowrap;
+}
+
+.hd-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Badges de Status BEM */
+.hd-badge {
+    display: inline-flex;
+    padding: 0.25rem 0.6rem;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.hd-badge--open { background-color: #dbeafe; color: #1e40af; }
+.hd-badge--pending { background-color: #fef3c7; color: #92400e; }
+.hd-badge--closed { background-color: #d1fae5; color: #065f46; }
+
+/* ==========================================================================
+   8. MENU DROPDOWN DO USUÁRIO
+   ========================================================================== */
+.user-dropdown-container {
+    position: relative;
+}
+
+.user-dropdown-trigger {
+    background: #f1f5f9;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 100px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s ease;
+}
+
+.user-dropdown-trigger:hover {
+    background: #e2e8f0;
+}
+
+.user-avatar-placeholder {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--helpdesk-gradient);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: grid;
+    place-items: center;
+}
+
+.user-avatar-photo {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.user-display-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.arrow-icon {
+    font-size: 0.75rem;
+    color: var(--muted-color);
+}
+
+.user-dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    background: var(--card-bg);
+    border: 1px solid var(--border-line);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    width: 220px;
+    padding: 12px 0;
+    display: none; 
+    z-index: 100;
+    animation: slideDown 0.2s ease;
+}
+
+.user-dropdown-menu.active {
+    display: block;
+}
+
+.user-dropdown-info {
+    padding: 4px 16px 10px 16px;
+}
+
+.user-dropdown-email {
+    font-size: 0.8rem;
+    color: var(--muted-color);
+    word-break: break-all;
+    margin-bottom: 6px;
+}
+
+.user-dropdown-level {
+    font-size: 0.85rem;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.user-dropdown-divider {
+    height: 1px;
+    background: var(--border-line);
+    margin: 8px 0;
+}
+
+.user-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-color);
+    transition: background 0.2s ease;
+}
+
+.user-dropdown-item:hover {
+    background: #f1f5f9;
+}
+
+.user-dropdown-item.logout-btn {
+    color: #ef4444; 
+}
+
+.user-dropdown-item.logout-btn:hover {
+    background: #fef2f2;
+}
+
+
+/* ==========================================================================
+   9. ANIMAÇÕES E MEDIA QUERIES (RESPONSIVIDADE COMPLETA)
+   ========================================================================== */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 1024px) {
+    .hd-details-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .hd-layout__sidebar {
+        position: absolute;
+        left: -260px;
+        height: 100vh;
+    }
+
+    .hd-layout--sidebar-collapsed .hd-layout__sidebar {
+        left: 0;
+        width: var(--sidebar-w);
+    }
+    
+    .hd-topbar {
+        padding: 0 1rem;
+    }
+
+    .hd-container {
+        padding: 1.25rem;
+        gap: 1.25rem;
+    }
+}
+
+/* ==========================================================================
+   10. TELA DE LOGIN
+   ========================================================================== */
+.login-container {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-body);
+    padding: 2rem 1rem;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 420px;
+}
+
+.hd-card__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.hd-card__icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 12px;
+    background: var(--helpdesk-gradient);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.hd-card__subtitle {
+    font-size: 0.85rem;
+    color: var(--muted-color);
+    margin: 0.15rem 0 0 0;
+}
+
+.hd-card__footer {
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid var(--border-line);
+}
+
+.hd-card__footer--center {
+    display: flex;
+    justify-content: center;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+}
+
+.hd-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.hd-field__label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.hd-field__wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.hd-field__icon {
+    position: absolute;
+    left: 0.9rem;
+    color: var(--muted-color);
+    display: flex;
+    pointer-events: none;
+}
+
+.hd-field__input {
+    width: 100%;
+    padding: 0.65rem 0.9rem 0.65rem 2.65rem;
+    border: 1px solid var(--border-line);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    font-family: inherit;
+    transition: border-color 0.2s ease;
+}
+
+.hd-field__input:focus {
+    outline: none;
+    border-color: var(--cor-primaria);
+}
+
+.hd-field__hint {
+    font-size: 0.78rem;
+    color: var(--muted-color);
+    margin: 0.35rem 0 0 0;
+}
+
+.hd-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hd-check__input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--cor-primaria);
+    cursor: pointer;
+}
+
+.hd-check__label {
+    font-size: 0.85rem;
+    color: var(--text-color);
+    cursor: pointer;
+}
+
+.hd-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.7rem 1.25rem;
+    border-radius: 10px;
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.hd-btn--primary {
+    background: var(--helpdesk-gradient);
+    color: #ffffff;
+}
+
+.hd-btn--primary:hover {
+    opacity: 0.92;
+}
+
+.login-form .hd-btn--primary {
+    width: 100%;
+}
+
+.hd-btn--ghost {
+    background: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--border-line);
+}
+
+.hd-btn--ghost:hover {
+    background: #f1f5f9;
+}
+
+.hd-link {
+    background: none;
+    border: none;
+    color: var(--cor-primaria);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 0;
+}
+
+.hd-link:hover {
+    text-decoration: underline;
+}
+
+.hd-modal-dialog {
+    max-width: 440px;
+}
+
+.hd-alert {
+    padding: 1rem;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.hd-alert--error {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* ==========================================================================
+   11. CARDS DE MÉTRICA COLORIDOS (.hd-stat)
+   ========================================================================== */
+.hd-stat {
+    position: relative;
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    color: #ffffff;
+    overflow: hidden; /* Mantém a marca d'água recortada dentro do card */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+.hd-stat--blue   { background: #2563eb; }
+.hd-stat--green  { background: #16a34a; }
+.hd-stat--orange { background: #f59e0b; }
+.hd-stat--red    { background: #ef4444; }
+
+/* Linha superior: ícone pequeno em caixa translúcida + rótulo ao lado */
+.hd-stat__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.hd-stat__icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.hd-stat__label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Número grande alinhado à esquerda */
+.hd-stat__value {
+    font-size: 2.1rem;
+    font-weight: 800;
+    line-height: 1;
+    margin: 0.75rem 0 0 0;
+}
+
+/* Ícone gigante "marca d'água" no canto direito */
+.hd-stat__watermark {
+    position: absolute;
+    right: -0.5rem;
+    bottom: -0.75rem;
+    font-size: 5.5rem;
+    color: rgba(255, 255, 255, 0.18);
+    pointer-events: none;
+}
+
+/* ==========================================================================
+   12. BOTÃO OUTLINE PEQUENO ("Ver todos")
+   ========================================================================== */
+.hd-btn--outline {
+    background: transparent;
+    color: var(--cor-primaria);
+    border: 1px solid var(--cor-primaria);
+}
+
+.hd-btn--outline:hover {
+    opacity: 0.8;
+}
+
+.hd-btn--sm {
+    padding: 0.4rem 0.9rem;
+    font-size: 0.8rem;
+}
+
+/* ==========================================================================
+   13. FORMULÁRIOS EM GRID (ex.: modal "Editar Configurações")
+   ========================================================================== */
+.hd-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: end;
+}
+
+/* Variante "larga" — mais colunas por linha, se ajustando sozinha (auto-fit) conforme
+   o espaço disponível. Usada em modais mais horizontais (ex.: Editar Perfil), sem
+   alterar o .hd-form-grid padrão de 2 colunas usado nos demais modais. */
+.hd-form-grid--wide {
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.hd-form-section-title {
+    grid-column: 1 / -1;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--muted-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.hd-form-divider {
+    grid-column: 1 / -1;
+    height: 1px;
+    background: var(--border-line);
+    margin: 0.25rem 0;
+}
+
+/* Variante de .hd-field__input sem o recuo reservado para ícone (usada fora dos formulários de login) */
+.hd-field__input--plain {
+    padding-left: 0.9rem;
+}
+
+.hd-color-swatch-group {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.hd-color-swatch {
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    padding: 2px;
+    border: 1px solid var(--border-line);
+    border-radius: 8px;
+    cursor: pointer;
+    background: none;
+}
+
+/* ==========================================================================
+   14. SWEETALERT2 ACIMA DE QUALQUER MODAL DO SISTEMA
+   ========================================================================== */
+/* As modais do painel (#modalConfig, #modalPerfil) usam z-index: 9999.
+   O SweetAlert2 usa 1060 por padrão, então some atrás delas — forçamos aqui
+   um valor maior para garantir que o alerta sempre apareça por cima. */
+.swal2-container {
+    z-index: 100000 !important;
+}

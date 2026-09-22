@@ -1,0 +1,5 @@
+/vendor/
+/.env
+/uploads/*
+!/uploads/.htaccess
+graphify-out/
